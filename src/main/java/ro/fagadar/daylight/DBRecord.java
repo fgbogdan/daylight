@@ -206,6 +206,7 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 		strReturn += " fields:";
 		for (DBType t : dbStructure) {
 			strReturn += t.toString();
+			strReturn += ",";
 		}
 
 		return strReturn;

@@ -10,8 +10,8 @@ public class DBType {
 	int size2;
 
 	public String toString() {
-		return columnName + " " + columnType + " " + (defaultValue==null?"null":defaultValue.toString()) + " "
-				+ (autoincrement ? "auto" : "not auto");
+		return columnName + "(" + columnType + ")" + (defaultValue==null?"null":defaultValue.toString()) 
+				+ (autoincrement ? "-auto" : "");
 	}
 
 }
