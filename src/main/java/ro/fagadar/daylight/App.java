@@ -29,7 +29,7 @@ public class App {
 		DbManager.getDB().saveDBRecord(null, R);
 
 		R = DbManager.getDB().GetBlankDBRecord(null, "test", "", "", "ID");
-		// R.put("ID", 1);
+		//R.put("ID", 13);
 		R.put("NAME", "Bogdan");
 		DbManager.getDB().saveDBRecord(null, R);
 
@@ -39,7 +39,7 @@ public class App {
 		if (T.reccount() == 1) {
 			R = T.get(0);
 			DebugUtils.D(R);
-			R.put("NAME", "FlorinMarina");
+			R.put("NAME", "FloMar");
 			DebugUtils.D(R);
 			DbManager.getDB().saveDBTable(null, T);
 		}

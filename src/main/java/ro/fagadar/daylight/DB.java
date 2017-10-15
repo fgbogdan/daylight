@@ -101,7 +101,7 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = "UPDATE userspid SET UserID='" + p_UserID + "' WHERE spid=connection_id();";
 					break;
-				case "MSSSQL":
+				case "MSSQL":
 					strSQLCommand = "UPDATE userspid SET UserID='" + p_UserID + "' WHERE spid=@@spid";
 					break;
 				case "H2":
@@ -291,7 +291,7 @@ public class DB {
 			url = "jdbc:mysql://" + DBConnection.sqlServerName + "/" + DBConnection.sqlDatabase
 					+ "?zeroDateTimeBehavior=convertToNull&autoReconnect=true&relaxAutoCommit=true&allowMultiQueries=true";
 			break;
-		case "MSSSQL":
+		case "MSSQL":
 			url = "jdbc:sqlserver://" + DBConnection.sqlServerName + ";user=" + DBConnection.strSQLUser + ";password="
 					+ DBConnection.strSQLPassword + ";databaseName=" + DBConnection.sqlDatabase + ";";
 
@@ -312,7 +312,7 @@ public class DB {
 			case "MYSQL":
 				conn = DriverManager.getConnection(url, DBConnection.strSQLUser, DBConnection.strSQLPassword);
 				break;
-			case "MSSSQL":
+			case "MSSQL":
 				conn = DriverManager.getConnection(url);
 
 				break;
@@ -360,7 +360,7 @@ public class DB {
 			case "MYSQL":
 				strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + colName + "= ? LIMIT 1;";
 				break;
-			case "MSSSQL":
+			case "MSSQL":
 				strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + colName + "= ? ";
 				break;
 			case "H2":
@@ -477,7 +477,7 @@ public class DB {
 					case "MYSQL":
 						strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + strSQLCond + " LIMIT 1;";
 						break;
-					case "MSSSQL":
+					case "MSSQL":
 						strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + strSQLCond;
 						break;
 					case "H2":
@@ -580,7 +580,7 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + sqlCond + " LIMIT 1;";
 					break;
-				case "MSSSQL":
+				case "MSSQL":
 					strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + sqlCond;
 					break;
 				case "H2":
@@ -882,7 +882,7 @@ public class DB {
 			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
 					+ p_strTableName + " ";
 			break;
-		case "MSSSQL":
+		case "MSSQL":
 			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
 					+ p_strTableName + " WITH (NOLOCK) ";
 			break;
@@ -1062,7 +1062,7 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = " SELECT * FROM " + p_strTableName + " ";
 					break;
-				case "MSSSQL":
+				case "MSSQL":
 					strSQLCommand = " SELECT * FROM " + p_strTableName + " WITH (NOLOCK) ";
 					break;
 				case "H2":
@@ -1126,7 +1126,13 @@ public class DB {
 								// UPPERCASE, HENCE NEED TO BE RETRIEVED IN UPPER CASE
 								strColname = rsmdResult.getColumnName(intCount).toUpperCase();
 								intColumnType = rsmdResult.getColumnType(intCount);
-								type = InterpretType(intColumnType);
+								try {
+									type = InterpretType(intColumnType);
+								} catch (Exception e) {
+									logger.info("InterpretType type not found");
+									logger.info("Column Name: " + strColname);
+									logger.info("Numeric value of type: " + intColumnType);
+								}
 								type.columnName = strColname;
 								type.autoincrement = rsmdResult.isAutoIncrement(intCount);
 								oDBRecord.dbStructure.add(type);
@@ -1363,7 +1369,7 @@ public class DB {
 							+ strKeyValue + "','" + strColumnName + "', " + " '" + strOldValue + "','" + strNewValue
 							+ "','" + oUser.getString("ALIAS") + "', now())";
 					break;
-				case "MSSSQL":
+				case "MSSQL":
 					strSQLCommand = " INSERT INTO log_audit (table_name, key_value, column_name, "
 							+ " old_value, new_value, alias, dtmDateStamp ) " + "	values( '" + strTableName + "','"
 							+ strKeyValue + "','" + strColumnName + "', " + " '" + strOldValue + "','" + strNewValue
@@ -1472,8 +1478,13 @@ public class DB {
 		case "MYSQL":
 			strSQLCommand = "describe " + tableName;
 			break;
-		case "MSSSQL":
-			strSQLCommand = "nothing yet;";
+		case "MSSQL":
+			// @formatter:off
+			strSQLCommand = "SELECT [column].COLUMN_NAME, [column].DATA_TYPE, COLUMNPROPERTY(object_id([column].[TABLE_NAME]),"
+					+ " [column].[COLUMN_NAME], 'IsIdentity') AS [identity]"
+					+ " FROM INFORMATION_SCHEMA.COLUMNS [column]  WHERE [column].[Table_Name] = '" + tableName
+					+ "';";
+			// @formatter:on
 			break;
 		case "H2":
 			strSQLCommand = "show columns from " + tableName;
@@ -1510,10 +1521,16 @@ public class DB {
 						.equals("AUTO_INCREMENT");
 				oRecord.dbStructure.add(type);
 				break;
-			case "MSSQL":
-				// TODO - mssql strcture
 
+			case "MSSQL":
+				strColname = TStruct.get(i).getString("COLUMN_NAME").toUpperCase().trim();
+				strType = TStruct.get(i).getString("DATA_TYPE").toUpperCase().trim();
+				type = InterpretType(strType);
+				type.columnName = strColname;
+				type.autoincrement = TStruct.get(i).get("IDENTITY").toString().toUpperCase().trim().equals("1");
+				oRecord.dbStructure.add(type);
 				break;
+
 			case "H2":
 				strColname = TStruct.get(i).getString("COLUMN_NAME").toUpperCase().trim();
 				strType = TStruct.get(i).getString("TYPE").toUpperCase().trim();
@@ -1522,6 +1539,7 @@ public class DB {
 				type.autoincrement = (!TStruct.get(i).get("DEFAULT").toString().toUpperCase().trim().equals("NULL"));
 				oRecord.dbStructure.add(type);
 				break;
+
 			}
 
 			oRecord.put(strColname, type.defaultValue);
@@ -1637,6 +1655,7 @@ public class DB {
 		// varchar sau text sau char sau nchar
 		case -15:
 		case 12:
+		case -9:
 		case -1:
 		case 1:
 			type.columnType = "STRING";
@@ -1881,6 +1900,9 @@ public class DB {
 	 */
 	public void SetUserSPID(DBRecord oUser, Connection conn) {
 
+		if (oUser == null)
+			return;
+
 		/*
 		 * if the connection is succesfull and TheApp.loginInfo.R is not null - set the
 		 * information in UserSpid
@@ -1916,7 +1938,7 @@ public class DB {
 							st.execute(strSQLCommand);
 							strSQLCommand = " INSERT INTO userspid values( '" + UserID + "',connection_id());";
 							break;
-						case "MSSSQL":
+						case "MSSQL":
 							strSQLCommand = "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME='userspid')";
 							strSQLCommand += " BEGIN ";
 							strSQLCommand += " DELETE FROM userspid WHERE spid = @@SPID ";
