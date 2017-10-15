@@ -8,6 +8,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -19,26 +20,19 @@ public class DB {
 
 	final static Logger logger = Logger.getLogger(DB.class);
 
-	// Connection conn = null;
-
 	public ArrayList<DBConnection> connections = new ArrayList<DBConnection>();
 
-	/*
-	 * Conexiunea la baza de date conexiunea propriuzisa data utlimei rulari daca
-	 * ruleaza
+	/**
+	 * get a connection to the database from the connection pool or create a new one
+	 * based on INI file
+	 * 
+	 * @param oUser
+	 * @return
 	 */
-
 	public DBConnection getConn(DBRecord oUser) {
-		/*
-		 * returneaza o conexiune din Pool-ul de conexiuni ... o sa fie implementat si
-		 * daca nu e niciuna ... creeaza una
-		 */
 
 		String UserID = null;
-		// try {
-		// UserID = oUser.getString("USERID");
-		// } catch (Exception e) {
-		// }
+
 		if (oUser != null)
 			if (!oUser.tableName.isEmpty())
 				UserID = oUser.getString("USERID");
@@ -52,27 +46,17 @@ public class DB {
 		else
 			p_UserID = UserID;
 
-		// logger.info("Connection for: " + p_UserID);
-
 		for (int i = 0; i < connections.size(); i++) {
 			con = (DBConnection) connections.get(i);
 
-			// logger.info(" Connection user:"+con.UserID+" vs " +
-			// p_UserID);
 			/* only if not logged in or - a connection from the same user */
 			if ("".equals(con.UserID) || p_UserID.equals(con.UserID)) {
 				// logger.info("Is My connection ...");
 				if (con.isinuse) {
 					/* do nothing */
-
-					// logger.info(i);
-					// logger.info(con);
-					// logger.info("Connection in use ...");
-					// logger.info(con.bornDate);
 				}
 				if (!con.isinuse) {
 					// i found a good one !
-					// logger.info("Found connection " + i);
 					con.UseMe();
 					break;
 				} else if (con.isDead()) {
@@ -91,14 +75,11 @@ public class DB {
 
 		if (null == con) {
 			// there are not enough connections !
-			// logger.info("New connection !");
 			try {
 				con = new DBConnection();
 				con.con = getSQLConnection(oUser);
 				con.UseMe();
 				connections.add(con);
-				// logger.info("New connection" + "@" + p_UserID + "#");
-				// logger.info(con);
 			} catch (Exception e) {
 				con = null;
 				logger.info("cannnot make a connection");
@@ -106,13 +87,12 @@ public class DB {
 				e.printStackTrace();
 			}
 		}
-		// logger.info("Not null");
 
-		// logger.info("Connection old user ! " + con.UserID);
+		// another user
 		if (!p_UserID.equals(con.UserID)) {
+			// update userspid table with the ID of the current user
 			con.UserID = p_UserID;
-			// logger.info("Connection used for new user ! " + con.UserID);
-			// update
+			logger.info("Connection used for new user ! " + con.UserID);
 			Statement st;
 			try {
 				st = con.con.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
@@ -129,7 +109,7 @@ public class DB {
 					break;
 				}
 				st.execute(strSQLCommand);
-				// logger.info("SPID - set !");
+				logger.info("SPID - set !");
 			} catch (SQLException e1) {
 				logger.info("UPDATE userspid");
 				logger.info(e1.getMessage());
@@ -141,11 +121,10 @@ public class DB {
 
 	}
 
+	/**
+	 * read from INI all the connection properties (and more)
+	 */
 	public void initConnection() {
-
-		/*
-		 * read from ini
-		 */
 
 		String strServerName = "", strSQLUser = "", strSQLPassword = "", strSQLDatabase = "";
 		String strSQLSufix = "", strSQLFirma = "", strFilesRepository = "";
@@ -159,7 +138,6 @@ public class DB {
 
 			pro.load(new FileInputStream(DbManager.iniFileName));
 
-			// logger.info("read from ini begin ...");
 			// sql server
 			strServerName = pro.getProperty("SQLSERVER");
 			if (strServerName == null)
@@ -283,10 +261,10 @@ public class DB {
 		if (DBConnection.dbType.isEmpty())
 			initConnection();
 
+		// set the connection class
 		try {
 			switch (DBConnection.dbType) {
 			case "MYSQL":
-				// Class.forName("com.mysql.jdbc.Driver").newInstance();
 				Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 				break;
 			case "MSSQL":
@@ -328,7 +306,6 @@ public class DB {
 		String sDataBase = "SqlDatabase=" + DBConnection.sqlDatabase;
 		logger.info(sDataBase);
 
-		// Connection conn=null;
 		try {
 
 			switch (DBConnection.dbType) {
@@ -1212,7 +1189,7 @@ public class DB {
 						bFirstTime = false;
 
 						// key value if exists
-						if(!oDBRecord.KeyName.isEmpty())
+						if (!oDBRecord.KeyName.isEmpty())
 							oDBRecord.KeyValue = oDBRecord.getString(oDBRecord.KeyName);
 
 						// add in Table
@@ -1464,12 +1441,20 @@ public class DB {
 
 		switch (intColumnType) {
 		// numeric
-		case 4:
-		case 5:
+		case Types.TINYINT:
+			// 1;
+		case Types.SMALLINT:
+			// 2;
+		case Types.INTEGER:
+			// 3
 			strType = "NUMERIC";
 			break;
-		case 2:
-		case 3:
+		case Types.FLOAT:
+			// 4;
+			strType = "FLOAT";
+			break;
+		case Types.DOUBLE:
+			// 5;
 			strType = "DOUBLE";
 			break;
 		// varchar sau text sau char sau nchar
