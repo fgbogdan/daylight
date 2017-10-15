@@ -51,7 +51,7 @@ public class DB {
 
 			/* only if not logged in or - a connection from the same user */
 			if ("".equals(con.UserID) || p_UserID.equals(con.UserID)) {
-				// logger.info("Is My connection ...");
+				logger.info("Is My connection ...");
 				if (con.isinuse) {
 					/* do nothing */
 				}
@@ -500,7 +500,7 @@ public class DB {
 
 				int intNoCols = 0;
 				String strColname = null;
-				Object strColvalue = null;
+				int intColumnType = 0;
 
 				try {
 					rsmdResult = rs.getMetaData();
@@ -510,12 +510,26 @@ public class DB {
 					oRecord.KeyName = "";
 					oRecord.KeyValue = "";
 
-					for (int intCount = 1; intCount <= intNoCols; intCount++) {
-						strColname = rsmdResult.getColumnName(intCount);
-						strColvalue = rs.getString(strColname);
-						oRecord.put_original(strColname.toUpperCase(), strColvalue);
-						// NOTE: THE COLUMN NAMES WILL ALWAYS BE STORED IN
-						// UPPERCASE, HENCE NEED TO BE RETRIEVED IN UPPER CASE
+					try {
+
+						DBType type = new DBType();
+						for (int intCount = 1; intCount <= intNoCols; intCount++) {
+							// NOTE: THE COLUMN NAMES WILL ALWAYS BE STORED IN
+							// UPPERCASE, HENCE NEED TO BE RETRIEVED IN UPPER CASE
+							strColname = rsmdResult.getColumnName(intCount).toUpperCase();
+							intColumnType = rsmdResult.getColumnType(intCount);
+							type = InterpretType(intColumnType);
+							type.columnName = strColname;
+							type.autoincrement = rsmdResult.isAutoIncrement(intCount);
+							oRecord.dbStructure.add(type);
+							oRecord.put_original(strColname, getFromRS(rs, type));
+						}
+
+					} catch (Exception e) {
+						logger.info(strColname);
+						logger.info(intColumnType);
+						logger.info(e.getMessage());
+						e.printStackTrace();
 					}
 				} catch (SQLException e) {
 					logger.info("put_original");
@@ -595,7 +609,6 @@ public class DB {
 					int intNoCols = 0;
 					int intColumnType = 0;
 					String strColname = null;
-					Object strColvalue = null;
 
 					try {
 						rsmdResult = rs.getMetaData();
@@ -605,89 +618,28 @@ public class DB {
 						oRecord.KeyName = colNameArr.get(0);
 						oRecord.KeyValue = colValueArr.get(0);
 
-						java.util.Calendar cal = Calendar.getInstance();
+						try {
 
-						for (int intCount = 1; intCount <= intNoCols; intCount++) {
-							strColname = rsmdResult.getColumnName(intCount);
-							strColname = strColname.toUpperCase();
-							// parsing
-							// type of the column
-							intColumnType = rsmdResult.getColumnType(intCount);
+							DBType type = new DBType();
+							for (int intCount = 1; intCount <= intNoCols; intCount++) {
+								// NOTE: THE COLUMN NAMES WILL ALWAYS BE STORED IN
+								// UPPERCASE, HENCE NEED TO BE RETRIEVED IN UPPER CASE
+								strColname = rsmdResult.getColumnName(intCount).toUpperCase();
+								intColumnType = rsmdResult.getColumnType(intCount);
+								type = InterpretType(intColumnType);
+								type.columnName = strColname;
+								type.autoincrement = rsmdResult.isAutoIncrement(intCount);
+								oRecord.dbStructure.add(type);
+								oRecord.put_original(strColname, getFromRS(rs, type));
+							}
 
-							switch (intColumnType) {
-							// numeric
-							case 4:
-								oRecord.put_original(strColname, rs.getInt(strColname));
-								break;
-							case 5:
-								oRecord.put_original(strColname, rs.getInt(strColname));
-								break;
-							case 2:
-							case 3:
-								oRecord.put_original(strColname, rs.getDouble(strColname));
-								break;
-							// biginteger
-							case -5:
-								oRecord.put_original(strColname, rs.getBigDecimal(strColname));
-								break;
-							// varchar sau text sau char
-							case 12:
-							case -1:
-							case 1:
-								oRecord.put_original(strColname, rs.getString(strColname));
-								break;
-							// bit
-							case -7:
-								oRecord.put_original(strColname, rs.getBoolean(strColname));
-								break;
-							// date
-							case 91:
-								// DebugUtils.D("date");
-								// cal.setTimeZone(TimeZone.getTimeZone("GMT+2"));
-								cal.setTimeZone(java.util.TimeZone.getDefault());
-								// DebugUtils.D(rs.getDate(intCount));
-								// oRecord.put_original(strColname,
-								// rs.getDate(strColname));
-								oRecord.put_original(strColname, rs.getDate(strColname, cal));
-								break;
-							// smalldatetime
-							case 93:
-								// oRecord.put_original(strColname,
-								// rs.getDate(strColname));
-								// DebugUtils.D("datetime");
-								// cal.setTimeZone(TimeZone.getTimeZone("GMT+2"));
-								cal.setTimeZone(java.util.TimeZone.getDefault());
-								// DebugUtils.D(rs.getTimestamp(strColname,
-								// cal));
-								// oRecord.put_original(strColname,
-								// rs.getTimestamp(strColname));
-								oRecord.put_original(strColname, rs.getTimestamp(strColname, cal));
-								/*
-								 * DebugUtils.D(strColname); DebugUtils.D(rs.getDate(strColname));
-								 * DebugUtils.D(rs.getTimestamp(strColname));
-								 * DebugUtils.D(oRecord.get(strColname));
-								 */
-
-								break;
-							// unknown
-							default:
-								logger.info("GetDBRecord - type not defined!");
-								logger.info(strColname);
-								logger.info(strColvalue);
-								logger.info(intColumnType);
-								oRecord.put_original(strColname, "<not defined> type:" + intColumnType);
-								break;
-
-							}// strColname!="RECORD"
-
-							// NOTE: THE COLUMN NAMES WILL ALWAYS BE STORED IN
-							// UPPERCASE, HENCE NEED TO BE RETRIEVED IN UPPER
-							// CASE
+						} catch (Exception e) {
+							logger.info(strColname);
+							logger.info(intColumnType);
+							logger.info(e.getMessage());
+							e.printStackTrace();
 						}
 					} catch (Exception e) {
-						logger.info(strColname);
-						logger.info(strColvalue);
-						logger.info(intColumnType);
 						logger.info(e.getMessage());
 						e.printStackTrace();
 					}
@@ -695,7 +647,7 @@ public class DB {
 				}
 
 			} catch (SQLException e) {
-				logger.info("GetDBRecord ... get connection");
+				logger.info("get connection");
 				logger.info(e.getMessage());
 				e.printStackTrace();
 
@@ -706,7 +658,7 @@ public class DB {
 
 		return oRecord;
 
-	}
+	} // GetDBRecordwithConn
 
 	/**
 	 * save the current R record in the database
