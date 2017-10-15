@@ -23,22 +23,18 @@ public class App {
 		DbManager.iniFileName = "daylight-test.ini";
 		DbManager.getDB().initConnection();
 
-		DBRecord R = new DBRecord();
-		DbManager.getDB().GetBlankDBRecord(null, R, "test", "", "", "ID");
-		//R.put("ID", 1);
+		DBRecord R = DbManager.getDB().GetBlankDBRecord(null, "test", "", "", "ID");
+		// R.put("ID", 1);
 		R.put("NAME", "Virginia");
 		DbManager.getDB().saveDBRecord(null, R);
-		
-		R = new DBRecord();
-		DbManager.getDB().GetBlankDBRecord(null, R, "test", "", "", "ID");
-		//R.put("ID", 1);
+
+		R = DbManager.getDB().GetBlankDBRecord(null, "test", "", "", "ID");
+		// R.put("ID", 1);
 		R.put("NAME", "Bogdan");
 		DbManager.getDB().saveDBRecord(null, R);
-		
 
 		/* select */
-		DBTable T = new DBTable();
-		DbManager.getDB().getDBTable(null, T, "test", "ID", "ID=13");
+		DBTable T = DbManager.getDB().getDBTable(null, "test", "ID", "ID=13");
 		DebugUtils.D(T);
 		if (T.reccount() == 1) {
 			R = T.get(0);
@@ -49,8 +45,7 @@ public class App {
 		}
 		// DbManager.getDB().deleteDBRecord(null, R);
 
-		T = new DBTable();
-		DbManager.getDB().getDBTable(null, T, "select * from test");
+		T = DbManager.getDB().getDBTable(null, "select * from test");
 		DebugUtils.D(T);
 
 	}

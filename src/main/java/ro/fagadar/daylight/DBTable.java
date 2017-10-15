@@ -19,6 +19,7 @@ public class DBTable implements Serializable {
 	public String tableName = "";
 	public String KeyName = "";
 	public int nLastLocatePos = -1;
+	public String strErrorMessage="";
 
 	/**
 	 * blank constructor

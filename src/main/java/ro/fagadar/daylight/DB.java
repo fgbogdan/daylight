@@ -345,7 +345,9 @@ public class DB {
 	 * @param colName
 	 * @param colValue
 	 */
-	public void GetDBRecord(DBRecord oUser, DBRecord oRecord, String tableName, String colName, String colValue) {
+	public DBRecord GetDBRecord(DBRecord oUser, String tableName, String colName, String colValue) {
+
+		DBRecord oRecord = new DBRecord();
 
 		DBConnection con = this.getConn(oUser);
 		try {
@@ -429,6 +431,8 @@ public class DB {
 		con.ReleaseMe();
 
 		oRecord.isChanged = false;
+
+		return oRecord;
 	}
 
 	/**
@@ -438,8 +442,8 @@ public class DB {
 	 * @param oRecord
 	 * @param strSQLCommand
 	 */
-	public void GetDBRecordForConditon(DBRecord oUser, DBRecord oRecord, String strSQLCommand) {
-		GetDBRecordForConditon(oUser, oRecord, "", strSQLCommand);
+	public DBRecord GetDBRecordForConditon(DBRecord oUser, String strSQLCommand) {
+		return GetDBRecordForConditon(oUser, "", strSQLCommand);
 	}
 
 	/**
@@ -450,7 +454,9 @@ public class DB {
 	 * @param tableName
 	 * @param strSQLCond
 	 */
-	public void GetDBRecordForConditon(DBRecord oUser, DBRecord oRecord, String tableName, String strSQLCond) {
+	public DBRecord GetDBRecordForConditon(DBRecord oUser, String tableName, String strSQLCond) {
+
+		DBRecord oRecord = new DBRecord();
 
 		DBConnection con = this.getConn(oUser);
 
@@ -527,6 +533,8 @@ public class DB {
 
 		con.ReleaseMe();
 		oRecord.isChanged = false;
+
+		return oRecord;
 	}
 
 	/**
@@ -539,8 +547,10 @@ public class DB {
 	 * @param colNameArr
 	 * @param colValueArr
 	 */
-	public void GetDBRecordwithConn(Connection conn, DBRecord oRecord, String tableName, ArrayList<String> colNameArr,
+	public DBRecord GetDBRecordwithConn(Connection conn, String tableName, ArrayList<String> colNameArr,
 			ArrayList<String> colValueArr) {
+
+		DBRecord oRecord = new DBRecord();
 
 		if (colNameArr.size() > 0 && colValueArr.size() > 0 && colNameArr.size() == colValueArr.size()) {
 			try {
@@ -693,6 +703,8 @@ public class DB {
 		}
 
 		oRecord.isChanged = false;
+
+		return oRecord;
 
 	}
 
@@ -1029,8 +1041,8 @@ public class DB {
 	 * @param p_strSQLCommand
 	 * @return
 	 */
-	public String getDBTable(DBRecord oUser, DBTable oTable, String p_strSQLCommand) {
-		return getDBTable(oUser, oTable, "", "", p_strSQLCommand);
+	public DBTable getDBTable(DBRecord oUser, String p_strSQLCommand) {
+		return getDBTable(oUser, "", "", p_strSQLCommand);
 	}
 
 	/**
@@ -1042,9 +1054,8 @@ public class DB {
 	 * @return
 	 */
 
-	public String getDBTable(DBRecord oUser, DBTable oTable, String p_strTableName, String p_strKeyName,
-			String p_strFilterCondition) {
-		return getDBTable(oUser, oTable, p_strTableName, p_strKeyName, p_strFilterCondition, "");
+	public DBTable getDBTable(DBRecord oUser, String p_strTableName, String p_strKeyName, String p_strFilterCondition) {
+		return getDBTable(oUser, p_strTableName, p_strKeyName, p_strFilterCondition, "");
 	}
 
 	/**
@@ -1058,21 +1069,23 @@ public class DB {
 	 * @param p_strOrderCondition
 	 * @return
 	 */
-	public String getDBTable(DBRecord oUser, DBTable oTable, String p_strTableName, String p_strKeyName,
-			String p_strFilterCondition, String p_strOrderCondition) {
+	public DBTable getDBTable(DBRecord oUser, String p_strTableName, String p_strKeyName, String p_strFilterCondition,
+			String p_strOrderCondition) {
 
-		String strErrorMessage = "";
+		DBTable oTable = new DBTable();
+
 		DBConnection con = this.getConn(oUser);
 
-		strErrorMessage = getDBTableWithConn(con.con, oTable, p_strTableName, p_strKeyName, p_strFilterCondition,
-				p_strOrderCondition);
+		oTable = getDBTableWithConn(con.con, p_strTableName, p_strKeyName, p_strFilterCondition, p_strOrderCondition);
 		con.ReleaseMe();
 
-		return strErrorMessage;
+		return oTable;
 	}
 
-	public String getDBTableWithConn(Connection conn, DBTable oTable, String p_strTableName, String p_strKeyName,
+	public DBTable getDBTableWithConn(Connection conn, String p_strTableName, String p_strKeyName,
 			String p_strFilterCondition, String p_strOrderCondition) {
+
+		DBTable oTable = new DBTable();
 
 		// string de return
 		String strErrorMessage = "";
@@ -1214,7 +1227,8 @@ public class DB {
 
 		}
 
-		return strErrorMessage;
+		oTable.strErrorMessage = strErrorMessage;
+		return oTable;
 	}
 
 	/**
@@ -1493,9 +1507,10 @@ public class DB {
 	 * @param colValue
 	 * @param colKeyName
 	 */
-	public void GetBlankDBRecord(DBRecord oUser, DBRecord oRecord, String tableName, String colName, String colValue,
+	public DBRecord GetBlankDBRecord(DBRecord oUser, String tableName, String colName, String colValue,
 			String colKeyName) {
 
+		DBRecord oRecord = new DBRecord();
 		DBTable TStruct = new DBTable();
 
 		// read the table structure of the table
@@ -1513,7 +1528,7 @@ public class DB {
 			break;
 		}
 
-		getDBTable(null, TStruct, strSQLCommand);
+		TStruct = getDBTable(null, strSQLCommand);
 		oRecord.isNew = true;
 		oRecord.tableName = tableName;
 		oRecord.KeyName = colName;
@@ -1523,7 +1538,7 @@ public class DB {
 
 		else if (!colKeyName.isEmpty())
 			if (DBConnection.dbType.equals("MSSQL")) {
-				// TODO - HetNNewID
+				// TODO - GetNNewID
 				// oRecord.KeyValue = GETNNEWID(oUser, colKeyName, tableName);
 			}
 
@@ -1562,6 +1577,8 @@ public class DB {
 		}
 
 		oRecord.isChanged = false;
+
+		return oRecord;
 
 	}
 
@@ -1753,9 +1770,9 @@ public class DB {
 	 * @param p_strSQLCommand
 	 * @return
 	 */
-	public String getDBXTable(DBRecord oUser, List<DBTable> oListDB, String p_strSQLCommand) {
+	public List<DBTable> getDBXTable(DBRecord oUser, String p_strSQLCommand) {
 
-		// return String
+		List<DBTable> oListDB = new ArrayList<DBTable>();
 		String strErrorMessage = "";
 
 		// connection
@@ -1900,7 +1917,8 @@ public class DB {
 			strErrorMessage = e.toString();
 		} // try general
 
-		return strErrorMessage;
+		oListDB.get(0).strErrorMessage = strErrorMessage;
+		return oListDB;
 	}
 
 	/**

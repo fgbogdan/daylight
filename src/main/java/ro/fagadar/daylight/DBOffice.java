@@ -12,7 +12,6 @@ import java.security.SecureRandom;
 import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
@@ -41,21 +40,19 @@ import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.export.JRXlsExporter;
 import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 
-
+@SuppressWarnings("deprecation")
 public class DBOffice {
-	
+
 	public DBRecord getUser() {
-//		HttpServletRequest request = this.getThreadLocalRequest();
-//		HttpSession session = request.getSession();
-//
-//		return (DBRecord) session.getAttribute("User");
-		//TODO - return user
+		// HttpServletRequest request = this.getThreadLocalRequest();
+		// HttpSession session = request.getSession();
+		//
+		// return (DBRecord) session.getAttribute("User");
+		// TODO - return user
 		return null;
 
 	}
 
-	
-	
 	public String getReport(String fileName, HashMap<String, Object> param, String type) {
 		try {
 			String filesRepository = DBConnection.FilesRepository + "/REPORTS/";
@@ -125,8 +122,7 @@ public class DBOffice {
 			return "No File";
 		}
 	}
-	
-	
+
 	/**
 	 * Generate an Excel file with the SQL result
 	 * 
@@ -136,8 +132,7 @@ public class DBOffice {
 	public String SQLToExcel(String p_strSQL, String p_fileName) {
 
 		// get the Table
-		DBTable T = new DBTable();
-		DbManager.getDB().getDBTable(null, T, p_strSQL);
+		DBTable T = DbManager.getDB().getDBTable(null, p_strSQL);
 
 		return DBTableToExcel(T, p_fileName);
 	} // SQLToExcel
@@ -254,16 +249,15 @@ public class DBOffice {
 	 * 
 	 * @param p_strSQL
 	 * @param p_templateName
-	 *           - template name
+	 *            - template name
 	 * @param p_sheetName
-	 *           - the name of the sheet where to write the data
+	 *            - the name of the sheet where to write the data
 	 * @return full path and file name
 	 */
 	public String SQLToTemplateExcel(String p_strSQL, String p_fileName, String p_templateName, String p_sheetName) {
 
 		// get the Table
-		DBTable T = new DBTable();
-		DbManager.getDB().getDBTable(null, T, p_strSQL);
+		DBTable T = DbManager.getDB().getDBTable(null, p_strSQL);
 		return DBTableToTemplateExcel(T, p_fileName, p_templateName, p_sheetName);
 	} // SQLToTemplateExcel
 
@@ -273,9 +267,9 @@ public class DBOffice {
 	 * @param T
 	 * @param p_fileName
 	 * @param p_templateName
-	 *           - template name
+	 *            - template name
 	 * @param p_sheetName
-	 *           - the name of the sheet where to write the data
+	 *            - the name of the sheet where to write the data
 	 * @return full path and file name
 	 */
 	public String DBTableToTemplateExcel(DBTable T, String p_fileName, String p_templateName, String p_sheetName) {
@@ -391,24 +385,23 @@ public class DBOffice {
 	} // DBTableToTemplateExcel
 
 	/**
-	 * Generate an Excel file with the SQL result using a template (multiple
-	 * sheets)
+	 * Generate an Excel file with the SQL result using a template (multiple sheets)
 	 * 
 	 * @param LT
-	 *           - list of tables
+	 *            - list of tables
 	 * @param p_fileName
 	 * @param p_templateName
-	 *           - template name
+	 *            - template name
 	 * @param p_LsheetName
-	 *           - list of sheet names - the name of the sheet where to write the
-	 *           data
+	 *            - list of sheet names - the name of the sheet where to write the
+	 *            data
 	 * @return full path and file name
 	 */
-	public String SQLToTemplateExcel(String p_strSQL, String p_fileName, String p_templateName, List<String> p_LsheetName) {
-		// get the Table
-		List<DBTable> LT = new ArrayList<DBTable>();
+	public String SQLToTemplateExcel(String p_strSQL, String p_fileName, String p_templateName,
+			List<String> p_LsheetName) {
+
 		// call the sql - with multiple results
-		DbManager.getDB().getDBXTable(null, LT, p_strSQL);
+		List<DBTable> LT = DbManager.getDB().getDBXTable(null, p_strSQL);
 		return DBTableToTemplateExcel(LT, p_fileName, p_templateName, p_LsheetName);
 
 	} // SQLToTemplateExcel
@@ -418,16 +411,17 @@ public class DBOffice {
 	 * (multiple sheets)
 	 * 
 	 * @param LT
-	 *           - list of tables
+	 *            - list of tables
 	 * @param p_fileName
 	 * @param p_templateName
-	 *           - template name
+	 *            - template name
 	 * @param p_LsheetName
-	 *           - list of sheet names - the name of the sheet where to write the
-	 *           data
+	 *            - list of sheet names - the name of the sheet where to write the
+	 *            data
 	 * @return full path and file name
 	 */
-	public String DBTableToTemplateExcel(List<DBTable> LT, String p_fileName, String p_templateName, List<String> p_LsheetName) {
+	public String DBTableToTemplateExcel(List<DBTable> LT, String p_fileName, String p_templateName,
+			List<String> p_LsheetName) {
 
 		// generate the XLS file
 		String path = DBConnection.FilesRepository;
