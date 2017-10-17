@@ -116,9 +116,8 @@ public class DBOffice {
 			return resultFileNameWithPath;
 		} catch (JRException ex) {
 			System.out.println(ex.getMessage());
-			/* nu am raport jasper ... deci e posibil sa fie un raport grafic */
-			/* trebuie sa creez parametrii din ceea ce exista in param */
-			// throw new DBException("NO FILE");
+			/* no jasper report ... it is possible to have another output - html */
+			/* i must create parameters from param */
 			return "No File";
 		}
 	}
@@ -192,11 +191,7 @@ public class DBOffice {
 					} catch (Exception e) {
 						strTemp = "";
 					}
-					/*
-					 * if (NumberUtils.isNumber(strTemp)) {
-					 * cell.setCellValue(Double.parseDouble(strTemp));
-					 * cell.setCellStyle(numeric_style); } else {
-					 */
+
 					switch (T.FieldTypes.get(j)) {
 					case "DATE":
 						if (strTemp != null) {
@@ -209,7 +204,7 @@ public class DBOffice {
 
 					case "NUMERIC":
 					case "DOUBLE":
-						// pe aici nu intra deoarece numeric e pe if
+						// 
 						cell.setCellValue(Double.parseDouble(strTemp));
 						cell.setCellStyle(numeric_style);
 						break;
@@ -234,8 +229,7 @@ public class DBOffice {
 			workbook.write(out);
 			out.close();
 			workbook.close();
-			// System.out.println(fileRealName +
-			// " written successfully on disk.");
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -334,11 +328,7 @@ public class DBOffice {
 						} catch (Exception e) {
 							strTemp = "";
 						}
-						/*
-						 * if (NumberUtils.isNumber(strTemp)) {
-						 * cell.setCellValue(Double.parseDouble(strTemp)); } else {
-						 * cell.setCellValue(strTemp); }
-						 */
+
 						switch (T.FieldTypes.get(j)) {
 						case "DATE":
 							if (strTemp != null) {
@@ -351,7 +341,7 @@ public class DBOffice {
 
 						case "NUMERIC":
 						case "DOUBLE":
-							// pe aici nu intra deoarece numeric e pe if
+							// 
 							cell.setCellValue(Double.parseDouble(strTemp));
 							cell.setCellStyle(numeric_style);
 							break;
@@ -465,9 +455,6 @@ public class DBOffice {
 
 				sheet = workbook.getSheet(sheetName);
 
-				// System.out.println(sheetName);
-				// System.out.println(sheet);
-
 				strTemp = "";
 
 				// header row
@@ -477,7 +464,7 @@ public class DBOffice {
 				{
 					org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(j);
 					cell.setCellValue((String) T.Fields.get(j));
-					// System.out.println(j + " " + (String) T.Fields.get(j));
+
 				}
 
 				// for all columns in the table
@@ -496,11 +483,7 @@ public class DBOffice {
 							} catch (Exception e) {
 								strTemp = "";
 							}
-							/*
-							 * if (NumberUtils.isNumber(strTemp)) {
-							 * cell.setCellValue(Double.parseDouble(strTemp)); } else {
-							 * cell.setCellValue(strTemp); }
-							 */
+
 							try {
 								switch (T.FieldTypes.get(j)) {
 								case "DATE":
@@ -515,11 +498,11 @@ public class DBOffice {
 								case "NUMERIC":
 								case "DOUBLE":
 									try {
-										// pe aici nu intra deoarece numeric e pe if
+										// 
 										cell.setCellValue(Double.parseDouble(strTemp));
 										cell.setCellStyle(numeric_style);
 									} catch (Exception e) {
-										/* fortez sa fie string */
+										/* force to be a string */
 										cell.setCellValue(strTemp);
 									}
 									break;

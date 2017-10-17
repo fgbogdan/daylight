@@ -6,7 +6,6 @@ public class DbManager {
 
 	final static Logger logger = Logger.getLogger(DbManager.class);
 
-	// static DB db = new DB();
 	static DB db = null;
 
 	public static String iniFileName = "nedefinit";

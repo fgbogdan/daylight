@@ -1482,8 +1482,7 @@ public class DB {
 			// @formatter:off
 			strSQLCommand = "SELECT [column].COLUMN_NAME, [column].DATA_TYPE, COLUMNPROPERTY(object_id([column].[TABLE_NAME]),"
 					+ " [column].[COLUMN_NAME], 'IsIdentity') AS [identity]"
-					+ " FROM INFORMATION_SCHEMA.COLUMNS [column]  WHERE [column].[Table_Name] = '" + tableName
-					+ "';";
+					+ " FROM INFORMATION_SCHEMA.COLUMNS [column]  WHERE [column].[Table_Name] = '" + tableName + "';";
 			// @formatter:on
 			break;
 		case "H2":
@@ -1635,41 +1634,124 @@ public class DB {
 	private DBType InterpretType(int pnType) throws Exception {
 		DBType type = new DBType();
 
+		// @formatter:off
+		/*
+		-7	BIT
+		-6	TINYINT
+		-5	BIGINT
+		-4	LONGVARBINARY 
+		-3	VARBINARY
+		-2	BINARY
+		-1	LONGVARCHAR
+		0	NULL
+		1	CHAR
+		2	NUMERIC
+		3	DECIMAL
+		4	INTEGER
+		5	SMALLINT
+		6	FLOAT
+		7	REAL
+		8	DOUBLE
+		12	VARCHAR
+		91	DATE
+		92	TIME
+		93	TIMESTAMP
+		1111 	OTHER
+		
+		JDBC type	Java type
+		CHAR	String
+		VARCHAR	String
+		LONGVARCHAR	String
+		NUMERIC	java.math.BigDecimal
+		DECIMAL	java.math.BigDecimal
+		BIT	boolean
+		TINYINT	byte
+		SMALLINT	short
+		INTEGER	int
+		BIGINT	long
+		REAL	float
+		FLOAT	double
+		DOUBLE	double
+		BINARY	byte[]
+		VARBINARY	byte[]
+		LONGVARBINARY	byte[]
+		DATE	java.sql.Date
+		TIME	java.sql.Time
+		TIMESTAMP	java.sql.Timestamp
+
+		*/
+		//@formatter:on
+
 		switch (pnType) {
-		// numeric
-		case 4:
-		case 5:
-			type.columnType = "INT";
-			type.defaultValue = 0;
-			break;
-		case 2:
-		case 3:
-			type.columnType = "DOUBLE";
-			type.defaultValue = 0;
-			break;
-		// biginteger
-		case -5:
-			type.columnType = "BIGINT";
-			type.defaultValue = 0;
-			break;
-		// varchar sau text sau char sau nchar
-		case -15:
-		case 12:
-		case -9:
-		case -1:
-		case 1:
+
+		case Types.CHAR: // 1
 			type.columnType = "STRING";
-			type.defaultValue = "";
+			type.defaultValue = 0;
 			break;
-		// bit
-		case -7:
+		case Types.VARCHAR: // 12
+			type.columnType = "STRING";
+			type.defaultValue = 0;
+			break;
+		case Types.LONGVARCHAR:// -1
+			type.columnType = "STRING";
+			type.defaultValue = 0;
+			break;
+		case Types.NUMERIC: // 2
+			type.columnType = "BIGDECIMAL";
+			type.defaultValue = 0;
+			break;
+		case Types.DECIMAL: // 3
+			type.columnType = "BIGDECIMAL";
+			type.defaultValue = 0;
+			break;
+		case Types.BIT: // -7
 			type.columnType = "BOOLEAN";
 			type.defaultValue = false;
 			break;
-		// date
-		case 91:
-		case 93:
+		case Types.TINYINT: //
+			type.columnType = "BYTE";
+			type.defaultValue = false;
+			break;
+		case Types.SMALLINT: //
+			type.columnType = "INT";
+			type.defaultValue = false;
+			break;
+		case Types.INTEGER: // 4
+			type.columnType = "INT";
+			type.defaultValue = 0;
+			break;
+		case Types.BIGINT: //
+			type.columnType = "LONG";
+			type.defaultValue = 0;
+			break;
+		case Types.REAL:
+			type.columnType = "FLOAT";
+			type.defaultValue = 0;
+			break;
+		case Types.FLOAT:
+			type.columnType = "DOUBLE";
+			type.defaultValue = 0;
+			break;
+		case Types.DOUBLE:
+			type.columnType = "DOUBLE";
+			type.defaultValue = 0;
+			break;
+		case Types.BINARY:// byte[]
+			break;
+		case Types.VARBINARY:// byte[]
+			break;
+		case Types.LONGVARBINARY:// byte[]
+			break;
+		case Types.DATE:
 			type.columnType = "DATE";
+			type.defaultValue = null;
+			break;
+		case Types.TIME:
+			type.columnType = "TIME";
+			type.defaultValue = null;
+			break;
+		case Types.TIMESTAMP:
+			type.columnType = "TIMESTAMP";
 			type.defaultValue = null;
 			break;
 
@@ -1699,27 +1781,41 @@ public class DB {
 		case "STRING":
 			return pRs.getString(pType.columnName);
 
-		case "BIGINT":
+		case "BIGDECIMAL":
 			return pRs.getBigDecimal(pType.columnName);
 
 		case "INT":
 			return pRs.getInt(pType.columnName);
+
+		case "LONG":
+			return pRs.getLong(pType.columnName);
+
+		case "FLOAT":
+			return pRs.getFloat(pType.columnName);
 
 		case "DOUBLE":
 			return pRs.getDouble(pType.columnName);
 
 		case "BOOLEAN":
 			return pRs.getBoolean(pType.columnName);
+			
+		case "BYTE":
+			return pRs.getByte(pType.columnName);			
 
 		case "DATE":
 			java.util.Calendar cal = Calendar.getInstance();
 			cal.setTimeZone(java.util.TimeZone.getDefault());
 			return pRs.getDate(pType.columnName, cal);
 
-		case "DATETIME":
+		case "TIME":
 			java.util.Calendar cal1 = Calendar.getInstance();
 			cal1.setTimeZone(java.util.TimeZone.getDefault());
-			return pRs.getTimestamp(pType.columnName, cal1);
+			return pRs.getTime(pType.columnName, cal1);
+
+		case "DATETIME":
+			java.util.Calendar cal2 = Calendar.getInstance();
+			cal2.setTimeZone(java.util.TimeZone.getDefault());
+			return pRs.getTimestamp(pType.columnName, cal2);
 
 		default:
 			logger.error("getFromRS - type not defined!");
@@ -1968,8 +2064,6 @@ public class DB {
 			} else {
 				// logger.info("SetUserSPID ... user not logged !");
 			}
-		} else {
-			logger.info("User is null !");
 		}
 
 		if (con != null)

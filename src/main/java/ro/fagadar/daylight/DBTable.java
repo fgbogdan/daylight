@@ -15,7 +15,6 @@ public class DBTable implements Serializable {
 	public List<String> Fields;
 	public List<String> FieldTypes;
 	public List<DBRecord> DeletedRecords;
-	// public ArrayList<DBRecord> Records;
 	public String tableName = "";
 	public String KeyName = "";
 	public int nLastLocatePos = -1;

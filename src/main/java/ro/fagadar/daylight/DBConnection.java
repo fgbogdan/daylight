@@ -12,7 +12,7 @@ public class DBConnection {
 	public static String sqlServerName, sqlDatabase, sqlSufix, sqlIDFirma, FilesRepository, FilesRepository1, FilesRepository2;
 	public static String strSQLUser, strSQLPassword;
 	public static boolean isLog;
-	// NSSQL, MYSQL, H2
+	// MSSQL, MYSQL, H2
 	public static String dbType="";
 	
 
@@ -26,13 +26,11 @@ public class DBConnection {
 	public void UseMe() {
 		bornDate = new Date();
 		isinuse = true;
-		//System.out.println("Use : " + con.toString());
 	}
 
 	public void ReleaseMe() {
 		bornDate = null;
 		isinuse = false;
-		//System.out.println("Release : " + con.toString());
 	}
 
 }

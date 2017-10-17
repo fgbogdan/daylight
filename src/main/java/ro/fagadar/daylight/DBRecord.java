@@ -3,6 +3,8 @@ package ro.fagadar.daylight;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,12 +32,14 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 	public int recno = 1;
 
 	// for serialisation compiler problems
+	Long lngdummy;
 	Double dbldummy;
 	Float fltdummy;
 	Boolean bdummy;
 	Integer idummy;
 	java.sql.Date ddummy;
-	java.sql.Timestamp tdummy;
+	java.sql.Time tdummy;
+	java.sql.Timestamp tsdummy;
 
 	DBStructure dbStructure = new DBStructure();
 
@@ -124,14 +128,19 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 			return this.getString(strKey.toUpperCase());
 	}
 
-	// getDouble
-	public Double getDouble(String strKey) {
-		return Double.valueOf(this.get(strKey.toUpperCase()).toString());
+	// getLong
+	public Long getLong(String strKey) {
+		return Long.valueOf(this.get(strKey.toUpperCase()).toString());
 	}
 
 	// getFloat
 	public Float getFloat(String strKey) {
 		return Float.valueOf(this.get(strKey.toUpperCase()).toString());
+	}
+
+	// getDouble
+	public Double getDouble(String strKey) {
+		return Double.valueOf(this.get(strKey.toUpperCase()).toString());
 	}
 
 	// getInteger
@@ -160,6 +169,24 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 			return null;
 		String strDate = o.toString();
 		return DateUtils.String2Date(strDate, "yyyy-MM-dd");
+	}
+
+	public Time getTime(String strKey) {
+
+		Object o = this.get(strKey.toUpperCase());
+		if (o == null)
+			return null;
+		String strDate = o.toString();
+		return (Time) DateUtils.String2DateTime(strDate, "yyyy-MM-dd");
+	}
+
+	public Timestamp getTimestamp(String strKey) {
+
+		Object o = this.get(strKey.toUpperCase());
+		if (o == null)
+			return null;
+		String strDate = o.toString();
+		return (Timestamp) DateUtils.String2DateTime(strDate, "yyyy-MM-dd");
 	}
 
 	public String getDateString(String strKey) {
@@ -236,7 +263,7 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 						ps.setString(i + nFieldOffset, this.getString(columnName));
 						break;
 
-					case "BIGINT":
+					case "BIGDECIMAL":
 						ps.setBigDecimal(i + nFieldOffset, new BigDecimal(this.getString(columnName)));
 						break;
 
@@ -244,12 +271,16 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 						ps.setInt(i + nFieldOffset, this.getInteger(columnName));
 						break;
 
-					case "DOUBLE":
-						ps.setDouble(i + nFieldOffset, this.getDouble(columnName));
+					case "LONG":
+						ps.setLong(i + nFieldOffset, this.getLong(columnName));
 						break;
 
 					case "FLOAT":
 						ps.setFloat(i + nFieldOffset, this.getFloat(columnName));
+						break;
+
+					case "DOUBLE":
+						ps.setDouble(i + nFieldOffset, this.getDouble(columnName));
 						break;
 
 					case "DECIMAL":
@@ -261,9 +292,13 @@ public class DBRecord extends HashMap<Object, Object> implements Serializable {
 						break;
 
 					case "DATE":
-					case "TIME":
-					case "DATETIME":
 						ps.setDate(i + nFieldOffset, (java.sql.Date) this.getDate(columnName));
+						break;
+					case "TIME":
+						ps.setTime(i + nFieldOffset, this.getTime(columnName));
+						break;
+					case "TIMESTAMP":
+						ps.setTimestamp(i + nFieldOffset, this.getTimestamp(columnName));
 						break;
 
 					case "BLOB":
