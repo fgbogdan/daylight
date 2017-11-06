@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="daylight/daylight.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/daylight/ExportDaylightJar.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
+        <folder path="/daylight/target"/>
+        <file path="/daylight/pom.xml"/>
+        <folder path="/daylight/src"/>
+        <javaElement handleIdentifier="=daylight/src\/main\/resources"/>
+        <javaElement handleIdentifier="=daylight/src\/test\/java"/>
+        <file path="/daylight/.classpath"/>
+        <javaElement handleIdentifier="=daylight/src\/main\/java"/>
+        <file path="/daylight/daylight-test.ini"/>
+        <file path="/daylight/.project"/>
+    </selectedElements>
+</jardesc>

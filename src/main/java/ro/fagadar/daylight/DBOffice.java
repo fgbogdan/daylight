@@ -49,7 +49,7 @@ public class DBOffice {
 		//
 		// return (DBRecord) session.getAttribute("User");
 		// TODO - return user
-		return null;
+		 return null;
 
 	}
 

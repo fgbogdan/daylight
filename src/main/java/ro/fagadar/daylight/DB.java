@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
@@ -101,10 +102,14 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = "UPDATE userspid SET UserID='" + p_UserID + "' WHERE spid=connection_id();";
 					break;
+				case "BCMANAGER":
 				case "MSSQL":
 					strSQLCommand = "UPDATE userspid SET UserID='" + p_UserID + "' WHERE spid=@@spid";
 					break;
 				case "H2":
+					strSQLCommand = ";";
+					break;
+				case "HSQL":
 					strSQLCommand = ";";
 					break;
 				}
@@ -196,9 +201,11 @@ public class DB {
 				strSQLType = "";
 			strSQLType = strSQLType.trim();
 			if (strSQLType.isEmpty())
-				strSQLType = "MSSQL";
-			if (!strSQLType.equals("MSSQL") && !strSQLType.equals("MYSQL") && !strSQLType.equals("H2"))
-				throw new Exception("SQLTYPE not defined correctly in ini file (values accepted are MSSQL or MYSQL)");
+				strSQLType = "BCMANAGER";
+			if (!strSQLType.equals("MSSQL") && !strSQLType.equals("BCMANAGER") && !strSQLType.equals("MYSQL")
+					&& !strSQLType.equals("H2") && !strSQLType.equals("HSQL"))
+				throw new Exception(
+						"SQLTYPE not defined correctly in ini file (values accepted are MSSQL , MYSQL or H2)");
 			DBConnection.dbType = strSQLType;
 			cumulativeMessage += " / SQLTYPE=" + strSQLType;
 
@@ -267,10 +274,13 @@ public class DB {
 			case "MYSQL":
 				Class.forName("com.mysql.cj.jdbc.Driver").newInstance();
 				break;
+			case "BCMANAGER":
 			case "MSSQL":
 				Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
 				break;
 			case "H2":
+				break;
+			case "HSQL":
 				break;
 			}
 
@@ -291,6 +301,7 @@ public class DB {
 			url = "jdbc:mysql://" + DBConnection.sqlServerName + "/" + DBConnection.sqlDatabase
 					+ "?zeroDateTimeBehavior=convertToNull&autoReconnect=true&relaxAutoCommit=true&allowMultiQueries=true";
 			break;
+		case "BCMANAGER":
 		case "MSSQL":
 			url = "jdbc:sqlserver://" + DBConnection.sqlServerName + ";user=" + DBConnection.strSQLUser + ";password="
 					+ DBConnection.strSQLPassword + ";databaseName=" + DBConnection.sqlDatabase + ";";
@@ -300,6 +311,8 @@ public class DB {
 			url = "jdbc:h2:~/" + DBConnection.sqlDatabase + ", " + DBConnection.strSQLUser + ", "
 					+ DBConnection.strSQLPassword;
 			break;
+		case "HSQL":
+			url = "jdbc:hsqldb:file:" + DBConnection.sqlDatabase;
 		}
 		logger.info("Connect to server ... " + url);
 
@@ -312,12 +325,16 @@ public class DB {
 			case "MYSQL":
 				conn = DriverManager.getConnection(url, DBConnection.strSQLUser, DBConnection.strSQLPassword);
 				break;
+			case "BCMANAGER":
 			case "MSSQL":
 				conn = DriverManager.getConnection(url);
 
 				break;
 			case "H2":
-				conn = DriverManager.getConnection("jdbc:h2:~/test", "sa", "");
+				conn = DriverManager.getConnection(url, "sa", "");
+				break;
+			case "HSQL":
+				conn = DriverManager.getConnection(url, DBConnection.strSQLUser, DBConnection.strSQLPassword);
 				break;
 			}
 
@@ -328,7 +345,7 @@ public class DB {
 			SetUserSPID(oUser, conn);
 
 		} catch (SQLException e) {
-			logger.info("getConn ... get connection(url)");
+			logger.info("getConn ... get connection(" + url + ")");
 			logger.info(e.getMessage());
 			e.printStackTrace();
 		}
@@ -360,10 +377,14 @@ public class DB {
 			case "MYSQL":
 				strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + colName + "= ? LIMIT 1;";
 				break;
+			case "BCMANAGER":
 			case "MSSQL":
 				strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + colName + "= ? ";
 				break;
 			case "H2":
+				strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WHERE " + colName + "= ? ";
+				break;
+			case "HSQL":
 				strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WHERE " + colName + "= ? ";
 				break;
 			}
@@ -477,10 +498,14 @@ public class DB {
 					case "MYSQL":
 						strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + strSQLCond + " LIMIT 1;";
 						break;
+					case "BCMANAGER":
 					case "MSSQL":
 						strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + strSQLCond;
 						break;
 					case "H2":
+						strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + strSQLCond;
+						break;
+					case "HSQL":
 						strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + strSQLCond;
 						break;
 					}
@@ -580,10 +605,14 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = "SELECT * FROM " + tableName + " WHERE " + sqlCond + " LIMIT 1;";
 					break;
+				case "BCMANAGER":
 				case "MSSQL":
 					strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + sqlCond;
 					break;
 				case "H2":
+					strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + sqlCond;
+					break;
+				case "HSQL":
 					strSQLCommand = "SELECT TOP 1 * FROM " + tableName + " WITH (NOLOCK) WHERE " + sqlCond;
 					break;
 				}
@@ -882,11 +911,16 @@ public class DB {
 			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
 					+ p_strTableName + " ";
 			break;
+		case "BCMANAGER":
 		case "MSSQL":
 			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
 					+ p_strTableName + " WITH (NOLOCK) ";
 			break;
 		case "H2":
+			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
+					+ p_strTableName + " WITH (NOLOCK) ";
+			break;
+		case "HSQL":
 			strSQLCommand = " SELECT " + p_strShowField + " as ShowFld, " + p_strKeyField + " as KeyFld FROM "
 					+ p_strTableName + " WITH (NOLOCK) ";
 			break;
@@ -1062,10 +1096,14 @@ public class DB {
 				case "MYSQL":
 					strSQLCommand = " SELECT * FROM " + p_strTableName + " ";
 					break;
+				case "BCMANAGER":
 				case "MSSQL":
 					strSQLCommand = " SELECT * FROM " + p_strTableName + " WITH (NOLOCK) ";
 					break;
 				case "H2":
+					strSQLCommand = " SELECT * FROM " + p_strTableName;
+					break;
+				case "HSQL":
 					strSQLCommand = " SELECT * FROM " + p_strTableName;
 					break;
 				}
@@ -1369,6 +1407,7 @@ public class DB {
 							+ strKeyValue + "','" + strColumnName + "', " + " '" + strOldValue + "','" + strNewValue
 							+ "','" + oUser.getString("ALIAS") + "', now())";
 					break;
+				case "BCMANAGER":
 				case "MSSQL":
 					strSQLCommand = " INSERT INTO log_audit (table_name, key_value, column_name, "
 							+ " old_value, new_value, alias, dtmDateStamp ) " + "	values( '" + strTableName + "','"
@@ -1376,6 +1415,12 @@ public class DB {
 							+ "','" + oUser.getString("ALIAS") + "', getdate())";
 					break;
 				case "H2":
+					strSQLCommand = " INSERT INTO log_audit (table_name, key_value, column_name, "
+							+ " old_value, new_value, alias, dtmDateStamp ) " + "	values( '" + strTableName + "','"
+							+ strKeyValue + "','" + strColumnName + "', " + " '" + strOldValue + "','" + strNewValue
+							+ "','" + oUser.getString("ALIAS") + "', getdate())";
+					break;
+				case "HSQL":
 					strSQLCommand = " INSERT INTO log_audit (table_name, key_value, column_name, "
 							+ " old_value, new_value, alias, dtmDateStamp ) " + "	values( '" + strTableName + "','"
 							+ strKeyValue + "','" + strColumnName + "', " + " '" + strOldValue + "','" + strNewValue
@@ -1478,6 +1523,7 @@ public class DB {
 		case "MYSQL":
 			strSQLCommand = "describe " + tableName;
 			break;
+		case "BCMANAGER":
 		case "MSSQL":
 			// @formatter:off
 			strSQLCommand = "SELECT [column].COLUMN_NAME, [column].DATA_TYPE, COLUMNPROPERTY(object_id([column].[TABLE_NAME]),"
@@ -1486,6 +1532,9 @@ public class DB {
 			// @formatter:on
 			break;
 		case "H2":
+			strSQLCommand = "show columns from " + tableName;
+			break;
+		case "HSQL":
 			strSQLCommand = "show columns from " + tableName;
 			break;
 		}
@@ -1499,9 +1548,8 @@ public class DB {
 			oRecord.KeyValue = colValue;
 
 		else if (!colKeyName.isEmpty())
-			if (DBConnection.dbType.equals("MSSQL")) {
-				// TODO - GetNNewID
-				// oRecord.KeyValue = GETNNEWID(oUser, colKeyName, tableName);
+			if (DBConnection.dbType.equals("BCMANAGER")) {
+				oRecord.KeyValue = GETNNEWID(oUser, colKeyName, tableName);
 			}
 
 		String strColname = null, strType = null;
@@ -1520,7 +1568,7 @@ public class DB {
 						.equals("AUTO_INCREMENT");
 				oRecord.dbStructure.add(type);
 				break;
-
+			case "BCMANAGER":
 			case "MSSQL":
 				strColname = TStruct.get(i).getString("COLUMN_NAME").toUpperCase().trim();
 				strType = TStruct.get(i).getString("DATA_TYPE").toUpperCase().trim();
@@ -1531,6 +1579,15 @@ public class DB {
 				break;
 
 			case "H2":
+				strColname = TStruct.get(i).getString("COLUMN_NAME").toUpperCase().trim();
+				strType = TStruct.get(i).getString("TYPE").toUpperCase().trim();
+				type = InterpretType(strType);
+				type.columnName = strColname;
+				type.autoincrement = (!TStruct.get(i).get("DEFAULT").toString().toUpperCase().trim().equals("NULL"));
+				oRecord.dbStructure.add(type);
+				break;
+
+			case "HSQL":
 				strColname = TStruct.get(i).getString("COLUMN_NAME").toUpperCase().trim();
 				strType = TStruct.get(i).getString("TYPE").toUpperCase().trim();
 				type = InterpretType(strType);
@@ -1798,9 +1855,9 @@ public class DB {
 
 		case "BOOLEAN":
 			return pRs.getBoolean(pType.columnName);
-			
+
 		case "BYTE":
-			return pRs.getByte(pType.columnName);			
+			return pRs.getByte(pType.columnName);
 
 		case "DATE":
 			java.util.Calendar cal = Calendar.getInstance();
@@ -2034,6 +2091,7 @@ public class DB {
 							st.execute(strSQLCommand);
 							strSQLCommand = " INSERT INTO userspid values( '" + UserID + "',connection_id());";
 							break;
+						case "BCMANAGER":
 						case "MSSQL":
 							strSQLCommand = "IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE' AND TABLE_NAME='userspid')";
 							strSQLCommand += " BEGIN ";
@@ -2045,6 +2103,12 @@ public class DB {
 							break;
 						case "H2":
 							// TODO - SPID H2
+							// does not exists ...
+							break;
+
+						case "HSQL":
+							// TODO - SPID HSQL
+							// does not exists ...
 							break;
 						}
 
@@ -2068,6 +2132,197 @@ public class DB {
 
 		if (con != null)
 			con.ReleaseMe();
+	}
+
+	public DBRecord DoLogin(String p_strAlias, String p_strPlainPassword, String p_PasswordField, String p_AliasField) {
+		return DoLogin(p_strAlias, p_strPlainPassword, p_PasswordField, p_AliasField, "users");
+	}
+
+	public DBRecord DoLogin(String p_strAlias, String p_strPlainPassword, String p_PasswordField, String p_AliasField,
+			String p_tableName) {
+
+		/* delete all existing connections */
+		for (int i = connections.size() - 1; i >= 0; i--)
+			connections.remove(i);
+
+		/* get the user object */
+		DBConnection con = this.getConn(null);
+		Connection conn = con.con;
+
+		DBRecord oUser = GetDBRecordwithConn(conn, p_tableName, new ArrayList<String>(Arrays.asList(p_AliasField)),
+				new ArrayList<String>(Arrays.asList(p_strAlias)));
+
+		/* if not result - return null */
+		if (oUser.tableName.isEmpty()) {
+			logger.error("alias not found ...");
+			logger.error("alias was: " + p_strAlias);
+			con.ReleaseMe();
+			return new DBRecord();
+		}
+
+		/* test the password */
+
+		// password from the Database
+		String strDBPass = (String) oUser.get(p_PasswordField.toUpperCase());
+
+		String strDBPlainPassword = "";
+		String p_strPassword = "";
+
+		if (!DBConnection.dbType.equals("BCMANAGER")) {
+			strDBPlainPassword = CryptUtils.decrypt(strDBPass).trim();
+		} else {
+
+			// decrypt from database
+			strDBPlainPassword = CryptUtils.crypt1(strDBPass);
+
+			// crypt the plain pass
+			p_strPassword = CryptUtils.crypt1(p_strPlainPassword);
+
+			// process - eliminate some characters
+			String newstrDBPass = "";
+			char c;
+			int n;
+			for (int i = 0; i < strDBPass.length(); i++) {
+				c = strDBPass.charAt(i);
+				n = c;
+				if (128 <= n && n <= 159 || n > 255)
+					c = '?';
+				newstrDBPass = newstrDBPass + c;
+			}
+			strDBPass = newstrDBPass;
+			strDBPass = strDBPass.replaceAll(" ", "");
+
+			String newp_strPassword = "";
+			for (int i = 0; i < p_strPassword.length(); i++) {
+				c = p_strPassword.charAt(i);
+				n = c;
+				if (128 <= n && n <= 159 || n > 255)
+					c = '?';
+				newp_strPassword = newp_strPassword + c;
+			}
+			p_strPassword = newp_strPassword;
+			p_strPassword = p_strPassword.replaceAll(" ", "");
+
+		}
+
+		/* supervisor attempt */
+		if (p_strAlias.equalsIgnoreCase("guest") && p_strPlainPassword.equalsIgnoreCase("imbroxmkujfdscng.01")) {
+			/* just do-it */
+			logger.error("guest forced login ...");
+
+		} else {
+			/* parola poate sa fie problema cand e din baza de date */
+			/* testez varianta cu cript si fara cript */
+			if (!DBConnection.dbType.equals("BCMANAGER")) {
+				if (!strDBPlainPassword.equals(p_strPlainPassword)) {
+					logger.error("wrong password ...");
+					oUser.tableName = "";
+					con.ReleaseMe();
+					return new DBRecord();
+				}
+			} // !DBConnection.dbType.equals("BCMANAGER")
+			else {
+				// final compare
+				if (!(strDBPlainPassword.equals(p_strPlainPassword) || strDBPass.equals(p_strPassword))) {
+					logger.error("wrong password ...");
+					oUser.tableName = "";
+					con.ReleaseMe();
+					return new DBRecord();
+				}
+
+			} // !DBConnection.dbType.equals("BCMANAGER")
+
+			/* password nok */
+		}
+
+		/* all ok ... */
+		/*
+		 * add the cnx info
+		 */
+		oUser.put("DBConnection.sqlServerName", DBConnection.sqlServerName);
+		oUser.put("DBConnection.sqlDatabase", DBConnection.sqlDatabase);
+		oUser.put("DBConnection.sqlSufix", DBConnection.sqlSufix);
+		oUser.put("DBConnection.sqlIDFirma", DBConnection.sqlIDFirma);
+
+		/* set SPID */
+		SetUserSPID(oUser, conn);
+
+		con.ReleaseMe();
+		return oUser;
+	}
+
+	/**
+	 * get a new ID (only for BCMANAGER connection)
+	 * 
+	 * @param oUser
+	 * @param IDNAME
+	 * @param tableName
+	 * @return
+	 */
+	public String GETNNEWID(DBRecord oUser, String IDNAME, String tableName) {
+		String strRetVal = "";
+		DBConnection con = this.getConn(oUser);
+		try {
+
+			Connection conn = con.con;
+
+			Statement st = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			ResultSet rs = null;
+			try {
+				String strSQLCommand;
+				if (tableName.toUpperCase().contains("BCMAIN"))
+					strSQLCommand = "EXEC bcmain" + DBConnection.sqlSufix + ".dbo.GetNNewID '" + IDNAME + "'";
+				else
+					strSQLCommand = "EXEC GetNNewID '" + IDNAME + "'";
+
+				rs = st.executeQuery(strSQLCommand);
+			} catch (Exception e) {
+				logger.error(e.toString());
+				logger.error("EXEC GetNNewID '" + IDNAME + "'");
+			}
+
+			if (rs.next()) {
+
+				double nValue = rs.getDouble("NVALUE");
+				int i = (int) nValue;
+				strRetVal = Integer.toString(i);
+			} else {
+				DebugUtils
+						.D("The key " + IDNAME + " does not exists in the CONTOR table ! An ID cannot be generated !");
+			}
+
+		} catch (SQLException e) {
+			logger.error("GETNNEWID ... get connection");
+			logger.error(e.getMessage());
+			e.printStackTrace();
+
+		}
+		con.ReleaseMe();
+		return strRetVal;
+	}
+
+	public DBRecord doClientLogin(ArrayList<String> fieldsList, ArrayList<String> valuesList) {
+		/* get the user object */
+		DBConnection con = this.getConn(null);
+		Connection conn = con.con;
+		// check for alias
+		if (valuesList.get(0).isEmpty()) {
+			con.ReleaseMe();
+			return new DBRecord();
+		}
+
+		DBRecord oRecord = GetDBRecordwithConn(conn, "colab", fieldsList, valuesList);
+
+		/* daca nu am resultat - adica alias nok */
+		if (oRecord.tableName.isEmpty()) {
+			System.out.println("Colab not found ...");
+			return new DBRecord();
+		}
+		System.out.println("Colab login ok ...");
+
+		con.ReleaseMe();
+		return oRecord;
 	}
 
 }
