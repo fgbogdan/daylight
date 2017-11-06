@@ -27,7 +27,6 @@ public class AppTest extends TestCase {
 	 * @return the suite of tests being tested
 	 */
 	public static Test suite() {
-		logger.info("Test suite ... run all from file");
 		return new TestSuite(AppTest.class);
 	}
 
@@ -37,32 +36,29 @@ public class AppTest extends TestCase {
 	public void testApp() {
 
 		DbManager.iniFileName = "daylight-test.ini";
-		logger.info("init connection");
 		DbManager.getDB().initConnection();
 
 		String strSQLCommand;
 		DBRecord ouser = null;
 
-		strSQLCommand = "CREATE TABLE TEST (ID int, NUME char(10))";
-		logger.info(strSQLCommand);
+		strSQLCommand = "CREATE TABLE TEST (ID int, NAME char(10))";
 		DbManager.getDB().executeNoResultSet(ouser, strSQLCommand);
 
-		strSQLCommand = "INSERT INTO TEST (ID,NUME) VALUES (1,'BOGDAN')";
-		logger.info(strSQLCommand);
+		strSQLCommand = "INSERT INTO TEST (ID,NAME) VALUES (1,'BOGDAN')";
 		DbManager.getDB().executeNoResultSet(ouser, strSQLCommand);
 
 		strSQLCommand = "SELECT * FROM TEST";
-		logger.info(strSQLCommand);
-		DbManager.getDB().executeResultSetNoOutput(ouser, strSQLCommand);
+		DBTable T = DbManager.getDB().getDBTable(ouser, strSQLCommand);
 
-		assertTrue(true);
+		logger.info(T.get(0).getString("NAME"));
+		
+		assertTrue(false);
 	}
 
 	/**
 	 * Rigourous Test :-)
 	 */
 	public void testApp1() {
-		System.out.println("test App1 ... when assert true - ok else false");
 		assertTrue(true);
 	}
 }

@@ -5,7 +5,6 @@ import java.util.Date;
 
 import com.google.gwt.i18n.client.DateTimeFormat;
 
-@SuppressWarnings("deprecation")
 public class DateUtils {
 
 	private static final long MS_PER_SEC = 1000;
