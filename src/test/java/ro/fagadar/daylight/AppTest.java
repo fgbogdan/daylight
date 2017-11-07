@@ -33,7 +33,7 @@ public class AppTest extends TestCase {
 	/**
 	 * append blank test
 	 */
-	public void testApp() {
+	public void testAppExec() {
 
 		DbManager.iniFileName = "daylight-test.ini";
 		DbManager.getDB().initConnection();
@@ -50,9 +50,7 @@ public class AppTest extends TestCase {
 		strSQLCommand = "SELECT * FROM TEST";
 		DBTable T = DbManager.getDB().getDBTable(ouser, strSQLCommand);
 
-		logger.info(T.get(0).getString("NAME"));
-		
-		assertTrue(false);
+		assertTrue("BOGDAN".equals(T.get(0).getString("NAME").trim()));
 	}
 
 	/**

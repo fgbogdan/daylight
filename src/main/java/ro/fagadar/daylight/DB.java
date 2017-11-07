@@ -279,8 +279,10 @@ public class DB {
 				Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver").newInstance();
 				break;
 			case "H2":
+				Class.forName("org.h2.Driver").newInstance();
 				break;
 			case "HSQL":
+				Class.forName("org.hsqldb.jdbc.JDBCDriver").newInstance();
 				break;
 			}
 
@@ -312,7 +314,7 @@ public class DB {
 					+ DBConnection.strSQLPassword;
 			break;
 		case "HSQL":
-			url = "jdbc:hsqldb:file:" + DBConnection.sqlDatabase;
+			url = "jdbc:hsqldb:mem:" + DBConnection.sqlDatabase;
 		}
 		logger.info("Connect to server ... " + url);
 
