@@ -20,6 +20,7 @@ public class App {
 
 		logger.info("Start App");
 
+		
 		DbManager.iniFileName = "daylight-test.ini";
 		DbManager.getDB().initConnection();
 
@@ -29,7 +30,7 @@ public class App {
 		DbManager.getDB().saveDBRecord(null, R);
 
 		R = DbManager.getDB().GetBlankDBRecord(null, "test", "", "", "ID");
-		//R.put("ID", 13);
+		// R.put("ID", 13);
 		R.put("NAME", "Bogdan");
 		DbManager.getDB().saveDBRecord(null, R);
 
